@@ -42,6 +42,38 @@ export interface Verse {
   readonly words: readonly Word[];
 }
 
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
+}
+
+export interface ToolResult {
+  content: { type: 'text'; text: string }[];
+  isError?: boolean;
+}
+
+export interface PromptArgument {
+  name: string;
+  description: string;
+  required: boolean;
+}
+
+export interface PromptDefinition {
+  name: string;
+  description: string;
+  arguments: PromptArgument[];
+}
+
+export interface PromptMessage {
+  role: 'user';
+  content: { type: 'text'; text: string };
+}
+
 export type GrammarCategory =
   | 'conjunction'
   | 'definite'

@@ -1,19 +1,4 @@
-interface PromptArgument {
-  name: string;
-  description: string;
-  required: boolean;
-}
-
-interface PromptDefinition {
-  name: string;
-  description: string;
-  arguments: PromptArgument[];
-}
-
-interface PromptMessage {
-  role: 'user';
-  content: { type: 'text'; text: string };
-}
+import type { PromptDefinition, PromptMessage } from '../types.js';
 
 export function getEbcedPromptDefinition(): PromptDefinition {
   return {

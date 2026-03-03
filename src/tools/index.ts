@@ -3,20 +3,7 @@ import { getVerseToolDefinitions, handleVerseTool } from './verse.js';
 import { getEbcedToolDefinitions, handleEbcedTool } from './ebced.js';
 import { getStatsToolDefinitions, handleStatsTool } from './stats.js';
 import { getRootToolDefinitions, handleRootTool } from './root.js';
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-interface ToolResult {
-  content: { type: 'text'; text: string }[];
-}
+import type { ToolDefinition, ToolResult } from '../types.js';
 
 export function getAllTools(): ToolDefinition[] {
   return [
@@ -58,5 +45,6 @@ export function handleToolCall(name: string, args: Record<string, unknown>): Too
         text: JSON.stringify({ error: `Unknown tool: ${name}` }),
       },
     ],
+    isError: true,
   };
 }

@@ -1,21 +1,7 @@
 import { getDb } from '../db.js';
 import { analyzeWord, getVariantInfo } from '../lib/arabic-grammar.js';
 import { arabicToBuckwalter, containsArabic } from '../lib/transliterate.js';
-import type { Word, GrammarCategory, GrammarGroupedResult } from '../types.js';
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-interface ToolResult {
-  content: { type: 'text'; text: string }[];
-}
+import type { Word, GrammarCategory, GrammarGroupedResult, ToolDefinition, ToolResult } from '../types.js';
 
 export function getSearchToolDefinitions(): ToolDefinition[] {
   return [
@@ -120,7 +106,7 @@ function handleQuranSearch(args: Record<string, unknown>): ToolResult {
   const limit = Math.min(Math.max(typeof args['limit'] === 'number' ? args['limit'] : 50, 1), 200);
 
   if (query.length === 0) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Query is required' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Query is required' }) }], isError: true };
   }
 
   const db = getDb();
@@ -144,7 +130,7 @@ function handleGrammarSearch(args: Record<string, unknown>): ToolResult {
   const includeBasmala = typeof args['include_basmala'] === 'boolean' ? args['include_basmala'] : true;
 
   if (query.length === 0) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Query is required' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Query is required' }) }], isError: true };
   }
 
   const db = getDb();
@@ -232,5 +218,5 @@ export function handleSearchTool(name: string, args: Record<string, unknown>): T
   if (name === 'quran_grammar_search') {
     return handleGrammarSearch(args);
   }
-  return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
+  return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
 }

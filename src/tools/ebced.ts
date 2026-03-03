@@ -1,19 +1,5 @@
 import { getDb } from '../db.js';
-import type { Word } from '../types.js';
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-interface ToolResult {
-  content: { type: 'text'; text: string }[];
-}
+import type { Word, ToolDefinition, ToolResult } from '../types.js';
 
 interface VerseRow {
   surah_no: number;
@@ -103,7 +89,7 @@ function handleEbcedWordSearch(
   }
 
   if (conditions.length === 0) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'At least one filter (value, min, max, surah, only_19) is required' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'At least one filter (value, min, max, surah, only_19) is required' }) }], isError: true };
   }
 
   const whereClause = conditions.join(' AND ');
@@ -161,7 +147,7 @@ function handleEbcedVerseSearch(
   }
 
   if (whereConditions.length === 0 && havingConditions.length === 0) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'At least one filter (value, min, max, surah, only_19) is required' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'At least one filter (value, min, max, surah, only_19) is required' }) }], isError: true };
   }
 
   const wherePart = whereConditions.length > 0 ? ` WHERE ${whereConditions.join(' AND ')}` : '';
@@ -186,7 +172,7 @@ function handleEbcedVerseSearch(
 
 export function handleEbcedTool(name: string, args: Record<string, unknown>): ToolResult {
   if (name !== 'quran_ebced_search') {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
   }
 
   const value = typeof args['value'] === 'number' ? args['value'] : undefined;

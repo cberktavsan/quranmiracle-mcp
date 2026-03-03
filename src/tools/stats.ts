@@ -1,20 +1,6 @@
 import { getDb } from '../db.js';
 import { LETTER_TO_ABJAD } from '../lib/constants.js';
-import type { LetterStat } from '../types.js';
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-interface ToolResult {
-  content: { type: 'text'; text: string }[];
-}
+import type { LetterStat, ToolDefinition, ToolResult } from '../types.js';
 
 interface LetterCountRow {
   letter: string;
@@ -57,7 +43,7 @@ export function getStatsToolDefinitions(): ToolDefinition[] {
 
 export function handleStatsTool(name: string, args: Record<string, unknown>): ToolResult {
   if (name !== 'quran_letter_stats') {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
   }
 
   const surah = typeof args['surah'] === 'number' ? args['surah'] : undefined;

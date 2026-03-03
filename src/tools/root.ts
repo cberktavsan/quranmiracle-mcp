@@ -1,20 +1,6 @@
 import { getDb } from '../db.js';
 import { arabicToBuckwalter, containsArabic } from '../lib/transliterate.js';
-import type { Word } from '../types.js';
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-interface ToolResult {
-  content: { type: 'text'; text: string }[];
-}
+import type { Word, ToolDefinition, ToolResult } from '../types.js';
 
 export function getRootToolDefinitions(): ToolDefinition[] {
   return [
@@ -38,13 +24,13 @@ export function getRootToolDefinitions(): ToolDefinition[] {
 
 export function handleRootTool(name: string, args: Record<string, unknown>): ToolResult {
   if (name !== 'quran_get_root_words') {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
   }
 
   const root = String(args['root'] ?? '');
 
   if (root.length === 0) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Root is required' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Root is required' }) }], isError: true };
   }
 
   const buckwalterRoot = containsArabic(root) ? arabicToBuckwalter(root) : root;

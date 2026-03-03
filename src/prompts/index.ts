@@ -2,23 +2,7 @@ import { getQuranSearchPromptDefinition, handleQuranSearchPrompt } from './quran
 import { getAnalyzeVersePromptDefinition, handleAnalyzeVersePrompt } from './quran-analyze-verse.js';
 import { getEbcedPromptDefinition, handleEbcedPrompt } from './quran-ebced.js';
 import { getRootAnalysisPromptDefinition, handleRootAnalysisPrompt } from './quran-root-analysis.js';
-
-interface PromptArgument {
-  name: string;
-  description: string;
-  required: boolean;
-}
-
-interface PromptDefinition {
-  name: string;
-  description: string;
-  arguments: PromptArgument[];
-}
-
-interface PromptMessage {
-  role: 'user';
-  content: { type: 'text'; text: string };
-}
+import type { PromptDefinition, PromptMessage } from '../types.js';
 
 export function getAllPrompts(): PromptDefinition[] {
   return [

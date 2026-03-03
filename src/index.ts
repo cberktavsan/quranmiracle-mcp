@@ -23,7 +23,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-  return handleToolCall(name, (args ?? {}) as Record<string, unknown>) as CallToolResult;
+  try {
+    return handleToolCall(name, (args ?? {}) as Record<string, unknown>) as CallToolResult;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Tool error [${name}]:`, message);
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: message }) }],
+      isError: true,
+    } as CallToolResult;
+  }
 });
 
 server.setRequestHandler(ListPromptsRequestSchema, async () => ({
@@ -32,7 +41,20 @@ server.setRequestHandler(ListPromptsRequestSchema, async () => ({
 
 server.setRequestHandler(GetPromptRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-  return handleGetPrompt(name, (args ?? {}) as Record<string, string>) as GetPromptResult;
+  try {
+    return handleGetPrompt(name, (args ?? {}) as Record<string, string>) as GetPromptResult;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Prompt error [${name}]:`, message);
+    return {
+      messages: [
+        {
+          role: 'user' as const,
+          content: { type: 'text' as const, text: `Error loading prompt: ${message}` },
+        },
+      ],
+    } as GetPromptResult;
+  }
 });
 
 const transport = new StdioServerTransport();

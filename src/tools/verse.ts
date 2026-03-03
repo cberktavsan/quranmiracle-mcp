@@ -1,19 +1,5 @@
 import { getDb } from '../db.js';
-import type { Word, Surah } from '../types.js';
-
-interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-interface ToolResult {
-  content: { type: 'text'; text: string }[];
-}
+import type { Word, Surah, ToolDefinition, ToolResult } from '../types.js';
 
 export function getVerseToolDefinitions(): ToolDefinition[] {
   return [
@@ -64,7 +50,7 @@ function handleGetVerse(args: Record<string, unknown>): ToolResult {
   const ayah = typeof args['ayah'] === 'number' ? args['ayah'] : 0;
 
   if (surah < 1 || surah > 114) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Surah must be between 1 and 114' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Surah must be between 1 and 114' }) }], isError: true };
   }
 
   const db = getDb();
@@ -80,6 +66,7 @@ function handleGetVerse(args: Record<string, unknown>): ToolResult {
           text: JSON.stringify({ error: `Verse ${surah}:${String(ayah)} not found` }),
         },
       ],
+      isError: true,
     };
   }
 
@@ -105,7 +92,7 @@ function handleGetSurah(args: Record<string, unknown>): ToolResult {
   const surah = typeof args['surah'] === 'number' ? args['surah'] : 0;
 
   if (surah < 1 || surah > 114) {
-    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Surah must be between 1 and 114' }) }] };
+    return { content: [{ type: 'text', text: JSON.stringify({ error: 'Surah must be between 1 and 114' }) }], isError: true };
   }
 
   const db = getDb();
@@ -119,6 +106,7 @@ function handleGetSurah(args: Record<string, unknown>): ToolResult {
           text: JSON.stringify({ error: `Surah ${String(surah)} not found` }),
         },
       ],
+      isError: true,
     };
   }
 
@@ -132,5 +120,5 @@ export function handleVerseTool(name: string, args: Record<string, unknown>): To
   if (name === 'quran_get_surah') {
     return handleGetSurah(args);
   }
-  return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }] };
+  return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
 }
