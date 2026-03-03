@@ -1,0 +1,33 @@
+{
+  "name": "@quranmiracle/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Quranic data - 77,851 words, 324,646 letters with grammar-aware search, ebced calculations, and linguistic analysis",
+  "type": "module",
+  "bin": {
+    "quranmiracle-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "data/qurandb.sqlite"
+  ],
+  "scripts": {
+    "build:db": "tsx scripts/build-db.ts",
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["mcp", "quran", "arabic", "islamic", "nlp", "database", "ebced", "abjad"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "better-sqlite3": "^11.8.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.13.10",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

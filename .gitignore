@@ -1,0 +1,5 @@
+node_modules/
+dist/
+data/words.json
+data/letters.json
+*.tgz
