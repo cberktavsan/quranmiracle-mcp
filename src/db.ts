@@ -16,7 +16,6 @@ export function getDb(): Database.Database {
   if (db === null) {
     const dbPath = findDbPath();
     db = new Database(dbPath, { readonly: true });
-    db.pragma('journal_mode = WAL');
     db.pragma('cache_size = -64000');
   }
   return db;
