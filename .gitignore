@@ -4,3 +4,4 @@ data/words.json
 data/letters.json
 *.tgz
 docs/
+.DS_Store
