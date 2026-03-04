@@ -3,3 +3,4 @@ dist/
 data/words.json
 data/letters.json
 *.tgz
+docs/
