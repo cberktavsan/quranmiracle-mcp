@@ -1,41 +1,41 @@
 export interface Word {
-  readonly word_id: string;
-  readonly surah_no: number;
   readonly ayah_no: number;
-  readonly order_in_ayah: number;
-  readonly order_in_surah: number;
-  readonly word_text: string;
-  readonly total_abjad: number;
-  readonly pos_tag: string | null;
-  readonly root: string | null;
-  readonly lemma: string | null;
   readonly global_order_asc: number;
   readonly global_order_desc: number;
+  readonly lemma: null | string;
+  readonly order_in_ayah: number;
+  readonly order_in_surah: number;
+  readonly pos_tag: null | string;
+  readonly root: null | string;
+  readonly surah_no: number;
+  readonly total_abjad: number;
+  readonly word_id: string;
+  readonly word_text: string;
 }
 
 export interface Letter {
-  readonly letter_char: string;
   readonly abjad_value: number;
-  readonly word_id: string;
-  readonly surah_no: number;
   readonly ayah_no: number;
-  readonly position_in_word: number;
   readonly global_order_asc: number;
+  readonly letter_char: string;
+  readonly position_in_word: number;
+  readonly surah_no: number;
+  readonly word_id: string;
 }
 
 export interface Surah {
-  readonly surah_no: number;
-  readonly name_ar: string;
-  readonly name_tr: string;
-  readonly name_en: string;
   readonly ayah_count: number;
-  readonly word_count: number;
   readonly letter_count: number;
+  readonly name_ar: string;
+  readonly name_en: string;
+  readonly name_tr: string;
+  readonly surah_no: number;
+  readonly word_count: number;
 }
 
 export interface Verse {
-  readonly surah_no: number;
   readonly ayah_no: number;
+  readonly surah_no: number;
   readonly text: string;
   readonly total_abjad: number;
   readonly word_count: number;
@@ -43,35 +43,35 @@ export interface Verse {
 }
 
 export interface ToolDefinition {
-  name: string;
   description: string;
   inputSchema: {
-    type: 'object';
     properties: Record<string, unknown>;
     required?: string[];
+    type: 'object';
   };
+  name: string;
 }
 
 export interface ToolResult {
-  content: { type: 'text'; text: string }[];
+  content: { text: string; type: 'text'; }[];
   isError?: boolean;
 }
 
 export interface PromptArgument {
-  name: string;
   description: string;
+  name: string;
   required: boolean;
 }
 
 export interface PromptDefinition {
-  name: string;
-  description: string;
   arguments: PromptArgument[];
+  description: string;
+  name: string;
 }
 
 export interface PromptMessage {
+  content: { text: string; type: 'text'; };
   role: 'user';
-  content: { type: 'text'; text: string };
 }
 
 export type GrammarCategory =
@@ -91,9 +91,9 @@ export interface GrammarGroupedResult {
 }
 
 export interface LetterStat {
-  readonly letter: string;
-  readonly count: number;
   readonly abjad_value: number;
-  readonly percentage: number;
+  readonly count: number;
   readonly divisible_by_19: boolean;
+  readonly letter: string;
+  readonly percentage: number;
 }

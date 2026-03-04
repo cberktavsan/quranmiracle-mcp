@@ -1,48 +1,48 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
-  ListToolsRequestSchema,
   CallToolRequestSchema,
-  ListPromptsRequestSchema,
-  GetPromptRequestSchema,
   type CallToolResult,
+  GetPromptRequestSchema,
   type GetPromptResult,
+  ListPromptsRequestSchema,
+  ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getAllTools, handleToolCall } from './tools/index.js';
-import { getAllPrompts, handleGetPrompt } from './prompts/index.js';
 import { closeDb } from './db.js';
+import { getAllPrompts, handleGetPrompt } from './prompts/index.js';
+import { getAllTools, handleToolCall } from './tools/index.js';
 
 const server = new Server(
   { name: '@quranmiracle/mcp', version: '0.1.0' },
   { capabilities: { tools: {}, prompts: {} } },
 );
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
+server.setRequestHandler(ListToolsRequestSchema, () => ({
   tools: getAllTools(),
 }));
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, (request) => {
   const { name, arguments: args } = request.params;
   try {
-    return handleToolCall(name, (args ?? {}) as Record<string, unknown>) as CallToolResult;
+    return handleToolCall(name, args ?? {}) as CallToolResult;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Tool error [${name}]:`, message);
     return {
-      content: [{ type: 'text', text: JSON.stringify({ error: message }) }],
+      content: [{ type: 'text' as const, text: JSON.stringify({ error: message }) }],
       isError: true,
     } as CallToolResult;
   }
 });
 
-server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+server.setRequestHandler(ListPromptsRequestSchema, () => ({
   prompts: getAllPrompts(),
 }));
 
-server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+server.setRequestHandler(GetPromptRequestSchema, (request) => {
   const { name, arguments: args } = request.params;
   try {
-    return handleGetPrompt(name, (args ?? {}) as Record<string, string>) as GetPromptResult;
+    return handleGetPrompt(name, args ?? {}) as GetPromptResult;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Prompt error [${name}]:`, message);

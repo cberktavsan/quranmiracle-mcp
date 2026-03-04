@@ -1,10 +1,10 @@
+import type { LetterStat, ToolDefinition, ToolResult } from '../types.js';
 import { getDb } from '../db.js';
 import { LETTER_TO_ABJAD } from '../lib/constants.js';
-import type { LetterStat, ToolDefinition, ToolResult } from '../types.js';
 
 interface LetterCountRow {
-  letter: string;
   count: number;
+  letter: string;
 }
 
 interface TotalCountRow {
@@ -53,7 +53,7 @@ export function handleStatsTool(name: string, args: Record<string, unknown>): To
   const db = getDb();
 
   const conditions: string[] = [];
-  const params: (string | number)[] = [];
+  const params: (number | string)[] = [];
 
   if (surah !== undefined) {
     conditions.push('surah_no = ?');
@@ -88,7 +88,7 @@ export function handleStatsTool(name: string, args: Record<string, unknown>): To
       letter: row.letter,
       count: row.count,
       abjad_value: abjadValue,
-      percentage: total > 0 ? Math.round((row.count / total) * 10000) / 100 : 0,
+      percentage: total > 0 ? Math.round((row.count / total) * 10_000) / 100 : 0,
       divisible_by_19: row.count % 19 === 0,
     };
   });

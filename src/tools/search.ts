@@ -1,7 +1,7 @@
+import type { GrammarCategory, GrammarGroupedResult, ToolDefinition, ToolResult, Word } from '../types.js';
 import { getDb } from '../db.js';
 import { analyzeWord, getVariantInfo } from '../lib/arabic-grammar.js';
 import { arabicToBuckwalter, containsArabic } from '../lib/transliterate.js';
-import type { Word, GrammarCategory, GrammarGroupedResult, ToolDefinition, ToolResult } from '../types.js';
 
 export function getSearchToolDefinitions(): ToolDefinition[] {
   return [
@@ -70,9 +70,9 @@ function buildSearchQuery(
   query: string,
   surah: number | undefined,
   limit: number,
-): { sql: string; params: (string | number)[] } {
+): { params: (number | string)[]; sql: string; } {
   const conditions: string[] = [];
-  const params: (string | number)[] = [];
+  const params: (number | string)[] = [];
 
   if (type === 'root') {
     const rootQuery = containsArabic(query) ? arabicToBuckwalter(query) : query;
@@ -100,8 +100,8 @@ function buildSearchQuery(
 }
 
 function handleQuranSearch(args: Record<string, unknown>): ToolResult {
-  const query = String(args['query'] ?? '');
-  const type = String(args['type'] ?? 'word');
+  const query = typeof args['query'] === 'string' ? args['query'] : '';
+  const type = typeof args['type'] === 'string' ? args['type'] : 'word';
   const surah = typeof args['surah'] === 'number' ? args['surah'] : undefined;
   const limit = Math.min(Math.max(typeof args['limit'] === 'number' ? args['limit'] : 50, 1), 200);
 
@@ -125,7 +125,7 @@ function handleQuranSearch(args: Record<string, unknown>): ToolResult {
 }
 
 function handleGrammarSearch(args: Record<string, unknown>): ToolResult {
-  const query = String(args['query'] ?? '');
+  const query = typeof args['query'] === 'string' ? args['query'] : '';
   const surah = typeof args['surah'] === 'number' ? args['surah'] : undefined;
   const includeBasmala = typeof args['include_basmala'] === 'boolean' ? args['include_basmala'] : true;
 
@@ -151,7 +151,7 @@ function handleGrammarSearch(args: Record<string, unknown>): ToolResult {
   // Build SQL with IN clause for all variants
   const placeholders = variants.map(() => '?').join(',');
   const conditions: string[] = [`word_text IN (${placeholders})`];
-  const params: (string | number)[] = [...variants];
+  const params: (number | string)[] = [...variants];
 
   if (surah !== undefined) {
     conditions.push('surah_no = ?');
@@ -172,10 +172,10 @@ function handleGrammarSearch(args: Record<string, unknown>): ToolResult {
   for (const word of words) {
     const info = getVariantInfo(word.word_text, baseWord);
     const existing = groupMap.get(info.category);
-    if (existing !== undefined) {
-      existing.push(word);
-    } else {
+    if (existing === undefined) {
       groupMap.set(info.category, [word]);
+    } else {
+      existing.push(word);
     }
   }
 
@@ -184,11 +184,11 @@ function handleGrammarSearch(args: Record<string, unknown>): ToolResult {
 
   for (const [category, categoryWords] of groupMap) {
     // Determine prefix for this category
-    const firstWord = categoryWords[0];
+    const [firstWord] = categoryWords;
     let prefix = '';
     if (firstWord !== undefined) {
-      const info = getVariantInfo(firstWord.word_text, baseWord);
-      prefix = info.prefix;
+      const { prefix: detectedPrefix } = getVariantInfo(firstWord.word_text, baseWord);
+      prefix = detectedPrefix;
     }
 
     groups.push({

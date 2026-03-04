@@ -1,6 +1,6 @@
+import type { ToolDefinition, ToolResult, Word } from '../types.js';
 import { getDb } from '../db.js';
 import { arabicToBuckwalter, containsArabic } from '../lib/transliterate.js';
-import type { Word, ToolDefinition, ToolResult } from '../types.js';
 
 export function getRootToolDefinitions(): ToolDefinition[] {
   return [
@@ -27,7 +27,7 @@ export function handleRootTool(name: string, args: Record<string, unknown>): Too
     return { content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }) }], isError: true };
   }
 
-  const root = String(args['root'] ?? '');
+  const root = typeof args['root'] === 'string' ? args['root'] : '';
 
   if (root.length === 0) {
     return { content: [{ type: 'text', text: JSON.stringify({ error: 'Root is required' }) }], isError: true };

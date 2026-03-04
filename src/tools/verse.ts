@@ -1,5 +1,5 @@
+import type { Surah, ToolDefinition, ToolResult, Word } from '../types.js';
 import { getDb } from '../db.js';
-import type { Word, Surah, ToolDefinition, ToolResult } from '../types.js';
 
 export function getVerseToolDefinitions(): ToolDefinition[] {
   return [

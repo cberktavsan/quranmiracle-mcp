@@ -1,9 +1,9 @@
-import { getSearchToolDefinitions, handleSearchTool } from './search.js';
-import { getVerseToolDefinitions, handleVerseTool } from './verse.js';
-import { getEbcedToolDefinitions, handleEbcedTool } from './ebced.js';
-import { getStatsToolDefinitions, handleStatsTool } from './stats.js';
-import { getRootToolDefinitions, handleRootTool } from './root.js';
 import type { ToolDefinition, ToolResult } from '../types.js';
+import { getEbcedToolDefinitions, handleEbcedTool } from './ebced.js';
+import { getRootToolDefinitions, handleRootTool } from './root.js';
+import { getSearchToolDefinitions, handleSearchTool } from './search.js';
+import { getStatsToolDefinitions, handleStatsTool } from './stats.js';
+import { getVerseToolDefinitions, handleVerseTool } from './verse.js';
 
 export function getAllTools(): ToolDefinition[] {
   return [

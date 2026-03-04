@@ -1,9 +1,9 @@
+import type { ToolDefinition, ToolResult, Word } from '../types.js';
 import { getDb } from '../db.js';
-import type { Word, ToolDefinition, ToolResult } from '../types.js';
 
 interface VerseRow {
-  surah_no: number;
   ayah_no: number;
+  surah_no: number;
   text: string;
   total_abjad: number;
   word_count: number;
@@ -57,32 +57,37 @@ export function getEbcedToolDefinitions(): ToolDefinition[] {
   ];
 }
 
+interface EbcedSearchParams {
+  readonly limit: number;
+  readonly max: number | undefined;
+  readonly min: number | undefined;
+  readonly only19: boolean;
+  readonly surah: number | undefined;
+  readonly value: number | undefined;
+}
+
 function handleEbcedWordSearch(
-  value: number | undefined,
-  min: number | undefined,
-  max: number | undefined,
-  surah: number | undefined,
-  only19: boolean,
-  limit: number,
+  searchParams: EbcedSearchParams,
 ): ToolResult {
+  const { limit, max, min, only19, surah, value } = searchParams;
   const conditions: string[] = [];
-  const params: (string | number)[] = [];
+  const sqlParams: (number | string)[] = [];
 
   if (value !== undefined) {
     conditions.push('total_abjad = ?');
-    params.push(value);
+    sqlParams.push(value);
   }
   if (min !== undefined) {
     conditions.push('total_abjad >= ?');
-    params.push(min);
+    sqlParams.push(min);
   }
   if (max !== undefined) {
     conditions.push('total_abjad <= ?');
-    params.push(max);
+    sqlParams.push(max);
   }
   if (surah !== undefined) {
     conditions.push('surah_no = ?');
-    params.push(surah);
+    sqlParams.push(surah);
   }
   if (only19) {
     conditions.push('total_abjad % 19 = 0');
@@ -94,10 +99,10 @@ function handleEbcedWordSearch(
 
   const whereClause = conditions.join(' AND ');
   const sql = `SELECT * FROM words WHERE ${whereClause} ORDER BY global_order_asc LIMIT ?`;
-  params.push(limit);
+  sqlParams.push(limit);
 
   const db = getDb();
-  const words = db.prepare(sql).all(...params) as Word[];
+  const words = db.prepare(sql).all(...sqlParams) as Word[];
 
   return {
     content: [
@@ -110,25 +115,21 @@ function handleEbcedWordSearch(
 }
 
 function handleEbcedVerseSearch(
-  value: number | undefined,
-  min: number | undefined,
-  max: number | undefined,
-  surah: number | undefined,
-  only19: boolean,
-  limit: number,
+  searchParams: EbcedSearchParams,
 ): ToolResult {
+  const { limit, max, min, only19, surah, value } = searchParams;
   const whereConditions: string[] = [];
   const havingConditions: string[] = [];
-  const params: (string | number)[] = [];
+  const whereParams: (number | string)[] = [];
 
   // Surah filter goes in WHERE
   if (surah !== undefined) {
     whereConditions.push('surah_no = ?');
-    params.push(surah);
+    whereParams.push(surah);
   }
 
-  // We need a separate params array approach since HAVING params come after WHERE params
-  const havingParams: (string | number)[] = [];
+  // HAVING params come after WHERE params in the query
+  const havingParams: (number | string)[] = [];
 
   if (value !== undefined) {
     havingConditions.push('SUM(total_abjad) = ?');
@@ -155,7 +156,7 @@ function handleEbcedVerseSearch(
 
   const sql = `SELECT surah_no, ayah_no, GROUP_CONCAT(word_text, ' ') as text, SUM(total_abjad) as total_abjad, COUNT(*) as word_count FROM words${wherePart} GROUP BY surah_no, ayah_no${havingPart} ORDER BY surah_no, ayah_no LIMIT ?`;
 
-  const allParams = [...params, ...havingParams, limit];
+  const allParams: (number | string)[] = [...whereParams, ...havingParams, limit];
 
   const db = getDb();
   const verses = db.prepare(sql).all(...allParams) as VerseRow[];
@@ -180,12 +181,14 @@ export function handleEbcedTool(name: string, args: Record<string, unknown>): To
   const max = typeof args['max'] === 'number' ? args['max'] : undefined;
   const surah = typeof args['surah'] === 'number' ? args['surah'] : undefined;
   const only19 = typeof args['only_19'] === 'boolean' ? args['only_19'] : false;
-  const type = String(args['type'] ?? 'word');
+  const type = typeof args['type'] === 'string' ? args['type'] : 'word';
   const limit = Math.min(Math.max(typeof args['limit'] === 'number' ? args['limit'] : 50, 1), 200);
 
+  const searchParams: EbcedSearchParams = { limit, max, min, only19, surah, value };
+
   if (type === 'verse') {
-    return handleEbcedVerseSearch(value, min, max, surah, only19, limit);
+    return handleEbcedVerseSearch(searchParams);
   }
 
-  return handleEbcedWordSearch(value, min, max, surah, only19, limit);
+  return handleEbcedWordSearch(searchParams);
 }

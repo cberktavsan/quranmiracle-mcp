@@ -1,8 +1,8 @@
-import { getQuranSearchPromptDefinition, handleQuranSearchPrompt } from './quran-search.js';
+import type { PromptDefinition, PromptMessage } from '../types.js';
 import { getAnalyzeVersePromptDefinition, handleAnalyzeVersePrompt } from './quran-analyze-verse.js';
 import { getEbcedPromptDefinition, handleEbcedPrompt } from './quran-ebced.js';
 import { getRootAnalysisPromptDefinition, handleRootAnalysisPrompt } from './quran-root-analysis.js';
-import type { PromptDefinition, PromptMessage } from '../types.js';
+import { getQuranSearchPromptDefinition, handleQuranSearchPrompt } from './quran-search.js';
 
 export function getAllPrompts(): PromptDefinition[] {
   return [

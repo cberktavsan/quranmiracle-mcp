@@ -1,4 +1,4 @@
-export const ARABIC_LETTERS: readonly { letter: string; abjad: number }[] = [
+export const ARABIC_LETTERS: readonly { abjad: number; letter: string; }[] = [
   { letter: 'ا', abjad: 1 }, { letter: 'ب', abjad: 2 }, { letter: 'ج', abjad: 3 },
   { letter: 'د', abjad: 4 }, { letter: 'ه', abjad: 5 }, { letter: 'و', abjad: 6 },
   { letter: 'ز', abjad: 7 }, { letter: 'ح', abjad: 8 }, { letter: 'ط', abjad: 9 },

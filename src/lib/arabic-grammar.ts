@@ -499,14 +499,9 @@ export function analyzeWord(word: string): {
   // Eğer prefix kaldırma sonucu taban kelime çok kısa kalıyorsa,
   // orijinal kelimeyi kullan (prefix kaldırmayı atla)
   // Bu, "بسم" gibi kelimelerin yanlış ayrıştırılmasını önler
-  let targetBase: string;
-  if (detectedPrefixes.length > 0 && baseWord.length < MIN_BASE_WORD_LENGTH) {
-    // Taban kelime çok kısa, orijinal kelimeyi kullan
-    targetBase = trimmedWord;
-  } else if (detectedPrefixes.length > 0) {
+  let targetBase: string = trimmedWord;
+  if (detectedPrefixes.length > 0 && baseWord.length >= MIN_BASE_WORD_LENGTH) {
     targetBase = baseWord;
-  } else {
-    targetBase = trimmedWord;
   }
 
   const variants = generateVariants(targetBase);

@@ -1,14 +1,14 @@
-import Database from 'better-sqlite3';
+import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
+import Database from 'better-sqlite3';
 
 let db: Database.Database | null = null;
 
 function findDbPath(): string {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const prodPath = resolve(__dirname, '..', 'data', 'qurandb.sqlite');
-  if (existsSync(prodPath)) return prodPath;
+  if (existsSync(prodPath)) {return prodPath;}
   throw new Error(`QuranDB database not found. Checked: ${prodPath}`);
 }
 
