@@ -1,22 +1,40 @@
 /**
- * Build SQLite database from words.json and letters.json
+ * Build SQLite database from compressed JSON data files
  *
  * Usage: npx tsx scripts/build-db.ts
  *
- * Reads the JSON data files and creates an optimized SQLite database
- * at data/qurandb.sqlite with proper indexes for fast querying.
+ * Reads gzipped JSON data files (words.json.gz, letters.json.gz) from the
+ * data/ directory and creates an optimized SQLite database at data/qurandb.sqlite.
+ * Falls back to uncompressed JSON files if .gz versions are not found.
  */
 
 import Database from 'better-sqlite3';
 import { readFileSync, existsSync, unlinkSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = resolve(__dirname, '..', 'data');
 const DB_PATH = resolve(DATA_DIR, 'qurandb.sqlite');
+const WORDS_GZ_PATH = resolve(DATA_DIR, 'words.json.gz');
+const LETTERS_GZ_PATH = resolve(DATA_DIR, 'letters.json.gz');
 const WORDS_PATH = resolve(DATA_DIR, 'words.json');
 const LETTERS_PATH = resolve(DATA_DIR, 'letters.json');
+
+function readJsonFile<T>(gzPath: string, jsonPath: string, label: string): T {
+  if (existsSync(gzPath)) {
+    console.error(`  Reading ${label} (gzip)...`);
+    const compressed = readFileSync(gzPath);
+    return JSON.parse(gunzipSync(compressed).toString('utf-8')) as T;
+  }
+  if (existsSync(jsonPath)) {
+    console.error(`  Reading ${label} (json)...`);
+    return JSON.parse(readFileSync(jsonPath, 'utf-8')) as T;
+  }
+  console.error(`ERROR: ${label} not found at ${gzPath} or ${jsonPath}`);
+  process.exit(1);
+}
 
 // ── Surah Names ──────────────────────────────────────────────────────────
 
@@ -63,19 +81,7 @@ interface LetterRow {
 
 function main(): void {
   console.error('Building QuranDB SQLite database...');
-  console.error(`  Words:   ${WORDS_PATH}`);
-  console.error(`  Letters: ${LETTERS_PATH}`);
   console.error(`  Output:  ${DB_PATH}`);
-
-  // Validate input files exist
-  if (!existsSync(WORDS_PATH)) {
-    console.error(`ERROR: words.json not found at ${WORDS_PATH}`);
-    process.exit(1);
-  }
-  if (!existsSync(LETTERS_PATH)) {
-    console.error(`ERROR: letters.json not found at ${LETTERS_PATH}`);
-    process.exit(1);
-  }
 
   // Remove existing database
   if (existsSync(DB_PATH)) {
@@ -83,13 +89,11 @@ function main(): void {
     unlinkSync(DB_PATH);
   }
 
-  // Read JSON data
-  console.error('  Reading words.json...');
-  const words: WordRow[] = JSON.parse(readFileSync(WORDS_PATH, 'utf-8')) as WordRow[];
+  // Read JSON data (prefers .gz, falls back to .json)
+  const words = readJsonFile<WordRow[]>(WORDS_GZ_PATH, WORDS_PATH, 'words');
   console.error(`  Read ${words.length} words`);
 
-  console.error('  Reading letters.json...');
-  const letters: LetterRow[] = JSON.parse(readFileSync(LETTERS_PATH, 'utf-8')) as LetterRow[];
+  const letters = readJsonFile<LetterRow[]>(LETTERS_GZ_PATH, LETTERS_PATH, 'letters');
   console.error(`  Read ${letters.length} letters`);
 
   // Create database
