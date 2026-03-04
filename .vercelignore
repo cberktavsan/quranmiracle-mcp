@@ -1,0 +1,9 @@
+node_modules
+dist
+docs
+.DS_Store
+*.tgz
+data/words.json
+data/letters.json
+data/words.json.gz
+data/letters.json.gz

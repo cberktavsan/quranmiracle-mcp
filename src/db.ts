@@ -6,10 +6,18 @@ import Database from 'better-sqlite3';
 let db: Database.Database | null = null;
 
 function findDbPath(): string {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  const prodPath = resolve(__dirname, '..', 'data', 'qurandb.sqlite');
-  if (existsSync(prodPath)) {return prodPath;}
-  throw new Error(`QuranDB database not found. Checked: ${prodPath}`);
+  const candidates = [
+    resolve(process.cwd(), 'data', 'qurandb.sqlite'),                                // Vercel (CWD = project root)
+    resolve(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'qurandb.sqlite'), // Local dev
+  ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(`QuranDB database not found. Checked:\n${candidates.join('\n')}`);
 }
 
 export function getDb(): Database.Database {

@@ -1,71 +1,53 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  type CallToolResult,
-  GetPromptRequestSchema,
-  type GetPromptResult,
-  ListPromptsRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-import { closeDb } from './db.js';
-import { getAllPrompts, handleGetPrompt } from './prompts/index.js';
-import { getAllTools, handleToolCall } from './tools/index.js';
+import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
+import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import express from 'express';
+import { JwtOAuthProvider } from './auth/provider.js';
+import { createMcpServer } from './server.js';
 
-const server = new Server(
-  { name: '@quranmiracle/mcp', version: '0.1.0' },
-  { capabilities: { tools: {}, prompts: {} } },
+const provider = new JwtOAuthProvider();
+
+const app = express();
+
+// OAuth 2.1 endpoints (/.well-known/*, /authorize, /token, /register)
+app.use(mcpAuthRouter({
+  provider,
+  issuerUrl: new URL(process.env['AUTH_ISSUER_URL'] ?? 'http://localhost:3000'),
+}));
+
+// MCP endpoint — Bearer token required
+app.post(
+  '/mcp',
+  requireBearerAuth({ verifier: provider }),
+  async (req, res): Promise<void> => {
+    const server = createMcpServer();
+    // Stateless mode: omit sessionIdGenerator so no sessions are tracked
+    const transport = new StreamableHTTPServerTransport({});
+
+    // Set onclose before connect to satisfy exactOptionalPropertyTypes
+    transport.onclose = (): void => { /* noop — cleanup handled by res.close */ };
+
+    res.on('close', () => {
+      void transport.close();
+      void server.close();
+    });
+
+    await server.connect(transport as Parameters<typeof server.connect>[0]);
+    await transport.handleRequest(req, res, req.body);
+  },
 );
 
-server.setRequestHandler(ListToolsRequestSchema, () => ({
-  tools: getAllTools(),
-}));
-
-server.setRequestHandler(CallToolRequestSchema, (request) => {
-  const { name, arguments: args } = request.params;
-  try {
-    return handleToolCall(name, args ?? {}) as CallToolResult;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`Tool error [${name}]:`, message);
-    return {
-      content: [{ type: 'text' as const, text: JSON.stringify({ error: message }) }],
-      isError: true,
-    } as CallToolResult;
-  }
+// Stateless mode: reject GET/DELETE on /mcp
+app.get('/mcp', (_req, res) => {
+  res.status(405).json({ error: 'Method not allowed. Use POST for MCP requests.' });
+});
+app.delete('/mcp', (_req, res) => {
+  res.status(405).json({ error: 'Method not allowed. Use POST for MCP requests.' });
 });
 
-server.setRequestHandler(ListPromptsRequestSchema, () => ({
-  prompts: getAllPrompts(),
-}));
-
-server.setRequestHandler(GetPromptRequestSchema, (request) => {
-  const { name, arguments: args } = request.params;
-  try {
-    return handleGetPrompt(name, args ?? {}) as GetPromptResult;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`Prompt error [${name}]:`, message);
-    return {
-      messages: [
-        {
-          role: 'user' as const,
-          content: { type: 'text' as const, text: `Error loading prompt: ${message}` },
-        },
-      ],
-    } as GetPromptResult;
-  }
+const PORT = Number.parseInt(process.env['PORT'] ?? '3000', 10);
+app.listen(PORT, () => {
+  console.log(`MCP server running on port ${String(PORT)}`);
 });
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
-
-process.on('SIGINT', () => {
-  closeDb();
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  closeDb();
-  process.exit(0);
-});
+export default app;

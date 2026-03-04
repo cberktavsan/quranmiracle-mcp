@@ -16,6 +16,7 @@ export default typescriptEslint.config(
   {
     ignores: [
       'eslint.config.ts',
+      'api/**',
       'scripts/**',
       'node_modules/**',
       'dist/**',
@@ -665,7 +666,23 @@ export default typescriptEslint.config(
 
   // Database + tools + index: better-sqlite3 returns unknown types, MCP SDK requires broad union casts
   {
-    files: ['src/tools/**/*.ts', 'src/db.ts', 'src/index.ts'],
+    files: ['src/tools/**/*.ts', 'src/db.ts', 'src/index.ts', 'src/server.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-type-assertion': 'off',
+    },
+  },
+
+  // Database path resolution uses resolve() — paths are safe, not user input
+  {
+    files: ['src/db.ts'],
+    rules: {
+      'security/detect-non-literal-fs-filename': 'off',
+    },
+  },
+
+  // Auth: JWT payloads are verified then cast to known shapes
+  {
+    files: ['src/auth/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-type-assertion': 'off',
     },
@@ -690,11 +707,19 @@ export default typescriptEslint.config(
     },
   },
 
-  // MCP entry point — Server is the correct low-level API (McpServer is high-level)
+  // MCP server files — Server is the correct low-level API (McpServer is high-level)
+  {
+    files: ['src/index.ts', 'src/server.ts'],
+    rules: {
+      '@typescript-eslint/no-deprecated': 'off',
+    },
+  },
+
+  // Express handler patterns: callback-style handlers with unused params
   {
     files: ['src/index.ts'],
     rules: {
-      '@typescript-eslint/no-deprecated': 'off',
+      'no-console': ['error', { allow: ['error', 'log'] }],
     },
   },
 );

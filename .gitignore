@@ -5,3 +5,4 @@ data/letters.json
 *.tgz
 docs/
 .DS_Store
+.vercel
