@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`@quranmiracle/mcp` — MCP (Model Context Protocol) server for Quranic linguistic data. Provides 8 tools and 4 prompts for grammar-aware search, ebced (abjad) calculations, custom SQL queries, and root/morphological analysis over 77,851 words and 324,646 letters.
+`@quranmiracle/mcp` — MCP (Model Context Protocol) server for Quranic linguistic data. Provides 8 tools and 8 prompts for grammar-aware search, ebced (abjad) calculations, custom SQL queries, word/letter counting, 19-pattern analysis, and root/morphological analysis over 77,851 words and 324,646 letters.
 
 Deployed as a remote HTTP MCP server on Vercel with OAuth 2.1 authentication. Also supports local STDIO transport via `npx`.
 
@@ -37,11 +37,15 @@ src/
 │   ├── root.ts       # quran_get_root_words
 │   └── query.ts      # quran_query (custom SQL)
 ├── prompts/
-│   ├── index.ts      # Prompt registry
-│   ├── quran-search.ts
-│   ├── quran-analyze-verse.ts
-│   ├── quran-ebced.ts
-│   └── quran-root-analysis.ts
+│   ├── index.ts                  # Prompt registry
+│   ├── quran-search.ts           # Grammar-aware search guide
+│   ├── quran-analyze-verse.ts    # Verse linguistic analysis
+│   ├── quran-ebced.ts            # Abjad numerology guide
+│   ├── quran-root-analysis.ts    # Root morphology analysis
+│   ├── quran-word-count.ts       # Word counting conventions
+│   ├── quran-letter-count.ts     # Letter frequency analysis
+│   ├── quran-statistical-analysis.ts  # SQL-based data analysis
+│   └── quran-19-analysis.ts      # 19-pattern verification
 └── lib/
     ├── arabic-grammar.ts  # Arabic prefix system logic
     ├── constants.ts       # Abjad values, prefix maps
