@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`@quranmiracle/mcp` — MCP (Model Context Protocol) server for Quranic linguistic data. Provides 7 tools and 4 prompts for grammar-aware search, ebced (abjad) calculations, and root/morphological analysis over 77,851 words and 324,646 letters.
+`@quranmiracle/mcp` — MCP (Model Context Protocol) server for Quranic linguistic data. Provides 8 tools and 4 prompts for grammar-aware search, ebced (abjad) calculations, custom SQL queries, and root/morphological analysis over 77,851 words and 324,646 letters.
 
 Deployed as a remote HTTP MCP server on Vercel with OAuth 2.1 authentication. Also supports local STDIO transport via `npx`.
 
@@ -34,7 +34,8 @@ src/
 │   ├── verse.ts      # quran_get_verse, quran_get_surah
 │   ├── ebced.ts      # quran_ebced_search
 │   ├── stats.ts      # quran_letter_stats
-│   └── root.ts       # quran_get_root_words
+│   ├── root.ts       # quran_get_root_words
+│   └── query.ts      # quran_query (custom SQL)
 ├── prompts/
 │   ├── index.ts      # Prompt registry
 │   ├── quran-search.ts
