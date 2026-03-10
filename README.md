@@ -1,10 +1,12 @@
 # @quranmiracle/mcp
 
-MCP server for Quranic linguistic data — 77,851 words, 324,646 letters, 114 surahs with grammar-aware search, ebced calculations, and root analysis.
+Remote MCP server for Quranic linguistic data — 77,851 words, 324,646 letters, 114 surahs with grammar-aware search, ebced calculations, and root analysis.
 
-Built on the [Model Context Protocol](https://modelcontextprotocol.io), this server gives AI applications direct access to a comprehensive Quranic database with Arabic morphological analysis, abjad (ebced) numerology, and grammar-aware search that handles the Arabic prefix system.
+Built on the [Model Context Protocol](https://modelcontextprotocol.io), this server gives AI applications direct access to a comprehensive Quranic database with Arabic morphological analysis, abjad (ebced) numerology, and grammar-aware search that handles the Arabic prefix system. Deployed as a remote HTTP server with OAuth 2.1 authentication.
 
 ## Quick Start
+
+This is a remote MCP server. Point your MCP client to the deployed URL:
 
 ### Claude Desktop
 
@@ -14,8 +16,7 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
 {
   "mcpServers": {
     "qurandb": {
-      "command": "npx",
-      "args": ["@quranmiracle/mcp"]
+      "url": "https://your-deployed-url.vercel.app/mcp"
     }
   }
 }
@@ -23,20 +24,27 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
 
 ### Cursor
 
-Go to **Settings > MCP Servers > Add** and use the same configuration:
+Go to **Settings > MCP Servers > Add**:
 
 ```json
 {
   "mcpServers": {
     "qurandb": {
-      "command": "npx",
-      "args": ["@quranmiracle/mcp"]
+      "url": "https://your-deployed-url.vercel.app/mcp"
     }
   }
 }
 ```
 
-The server runs over STDIO transport and requires no API keys or external services — the SQLite database is bundled with the package.
+The OAuth 2.1 flow is handled automatically by MCP clients — dynamic client registration, authorization, and token exchange happen transparently.
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `AUTH_SECRET` | Yes | Secret key for signing JWT tokens (HMAC-HS256) |
+| `AUTH_ISSUER_URL` | Yes | Public URL of the server (e.g. `https://your-app.vercel.app`) |
+| `PORT` | No | Server port (default: `3000`, managed by Vercel in production) |
 
 ## Available Tools (7)
 
@@ -91,15 +99,25 @@ Each word record includes: Arabic text, surah/ayah location, position in verse, 
 
 ## Example Scenarios
 
-These are common use cases in Turkish, reflecting the primary user base:
+- **"How many times does the word الله appear in the Quran?"** — Uses `quran_grammar_search` to find all prefix variants of Allah and returns grouped counts.
 
-- **"Kuran'da الله kelimesi kac kez geciyor?"** — Uses `quran_grammar_search` to find all prefix variants of Allah and returns grouped counts.
+- **"Analyze verse 2:255 (Ayat al-Kursi)"** — Uses `quran_get_verse` with surah=2, ayah=255 to retrieve full word-by-word linguistic data.
 
-- **"Bakara suresi 255. ayet (Ayetel Kursi) analiz et"** — Uses `quran_get_verse` with surah=2, ayah=255 to retrieve full word-by-word linguistic data.
+- **"Find words whose ebced value is a multiple of 19"** — Uses `quran_ebced_search` with `only_19: true` to find words whose abjad values are multiples of 19.
 
-- **"Ebced degeri 19'un kati olan kelimeler"** — Uses `quran_ebced_search` with `only_19: true` to find words whose abjad values are multiples of 19.
+- **"Show all words derived from the root ر-ح-م"** — Uses `quran_get_root_words` with root="رحم" to retrieve all words derived from the r-H-m root (mercy).
 
-- **"ر-ح-م kokunden tureyen kelimeler"** — Uses `quran_get_root_words` with root="رحم" to retrieve all words derived from the r-H-m root (mercy).
+## Deployment
+
+The server is configured for [Vercel](https://vercel.com) deployment. The `vercel.json` routes all requests to `api/index.ts`, which re-exports the Express app.
+
+```bash
+# Set required environment variables in Vercel dashboard:
+# AUTH_SECRET, AUTH_ISSUER_URL
+vercel deploy
+```
+
+The SQLite database (`data/qurandb.sqlite`) is bundled with the deployment via the `includeFiles` config in `vercel.json`.
 
 ## Building from Source
 
@@ -107,16 +125,20 @@ These are common use cases in Turkish, reflecting the primary user base:
 git clone https://github.com/berktavsan/quranmiracle-mcp.git
 cd quranmiracle-mcp
 npm install
-npm run build:db  # Requires words.json and letters.json in data/
-npm run build
+npm run build:db  # Creates SQLite from compressed JSON sources in data/
+npm run build     # Compiles TypeScript to dist/index.js
 ```
 
-The `build:db` script reads `data/words.json` and `data/letters.json` to create the SQLite database at `data/qurandb.sqlite`. The `build` script compiles TypeScript to `dist/index.js` using tsup.
+The `build:db` script decompresses `data/words.json.gz` and `data/letters.json.gz` to create the SQLite database at `data/qurandb.sqlite`.
 
 ### Development
 
 ```bash
-npm run dev  # Runs the server directly via tsx
+# Set environment variables
+export AUTH_SECRET="your-dev-secret"
+export AUTH_ISSUER_URL="http://localhost:3000"
+
+npm run dev  # Runs the server on port 3000 via tsx
 ```
 
 ## License
